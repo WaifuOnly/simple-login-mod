@@ -12,7 +12,8 @@
   "entrypoints": {
     "main": [
       "com.example.simplelogin.SimpleLoginMod",
-      "com.example.simplelogin.BackMod"
+      "com.example.simplelogin.BackMod",
+      "com.example.simplelogin.HomeMod"
     ]
   },
   "mixins": [
