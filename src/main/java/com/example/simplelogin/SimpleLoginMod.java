@@ -46,18 +46,8 @@ public class SimpleLoginMod implements ModInitializer {
     private static final Set<String> ALLOWED_BEFORE_LOGIN = Set.of("login", "l", "register", "reg");
 
     private static final class Pending {
-        final double x, y, z;
-        final float yRot, xRot;
         int ticksLeft = LOGIN_TIMEOUT_SECONDS * 20;
         int failedAttempts = 0;
-
-        Pending(ServerPlayer p) {
-            this.x = p.getX();
-            this.y = p.getY();
-            this.z = p.getZ();
-            this.yRot = p.getYRot();
-            this.xRot = p.getXRot();
-        }
     }
 
     private static AccountStore store;
@@ -73,6 +63,7 @@ public class SimpleLoginMod implements ModInitializer {
 
     public static void markAuthenticated(ServerPlayer player) {
         PENDING.remove(player.getUUID());
+        LOGGER.info("{} is now logged in.", player.getName().getString());
     }
 
     /** Returns attempts left, or 0 if the player has run out (caller should kick). */
@@ -111,7 +102,8 @@ public class SimpleLoginMod implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayer player = handler.getPlayer();
-            PENDING.put(player.getUUID(), new Pending(player));
+            PENDING.put(player.getUUID(), new Pending());
+            LOGGER.info("{} joined and must log in.", player.getName().getString());
             sendLoginPrompt(player);
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
@@ -163,13 +155,6 @@ public class SimpleLoginMod implements ModInitializer {
             }
             if (pending.ticksLeft % REMINDER_INTERVAL_TICKS == 0) {
                 sendLoginPrompt(player);
-            }
-
-            double dx = player.getX() - pending.x;
-            double dy = player.getY() - pending.y;
-            double dz = player.getZ() - pending.z;
-            if (dx * dx + dy * dy + dz * dz > 0.01) {
-                player.connection.teleport(pending.x, pending.y, pending.z, pending.yRot, pending.xRot);
             }
         }
     }
